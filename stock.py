@@ -1,4 +1,5 @@
-import urllib2, re, json, os.path, smtplib, time, ConfigParser, ast
+#!/usr/bin/env python
+import urllib2, re, json, os.path, smtplib, time, ConfigParser, ast,datetime
 
 data={}
 
@@ -11,29 +12,11 @@ cc=ast.literal_eval(Config.get("messenger", "cc"))
 SMTP=ast.literal_eval(Config.get("messenger", "SMTP"))
 currency=ast.literal_eval(Config.get("currency", "currency"))
 paramet_curr=ast.literal_eval(Config.get("currency", "paramet_curr"))
-#urlcurrencies=ast.literal_eval(Config.get("currency", "urlcurrencies"))
+urlcurrencies=ast.literal_eval(Config.get("currency", "urlcurrencies"))
 stock_set=ast.literal_eval(Config.get("stock", "stock_set"))
 paramet_stock=ast.literal_eval(Config.get("stock", "paramet_stock"))
-#urlstock=ast.literal_eval(Config.get("stock", "urlstock"))
+urlstock=ast.literal_eval(Config.get("stock", "urlstock"))
 xday=ast.literal_eval(Config.get("xdayaverage", "xday"))
-
-urlstock1=ast.literal_eval(Config.get("stock", "urlstock1"))
-urlcurrencies1=ast.literal_eval(Config.get("currency", "urlcurrencies1"))
-
-#currency=["EUR","USD","GBP","JPY"]
-#paramet_curr=[("EUR",2.5,"<"),("USD",30.7,">"),("GBP",25.6,"<"),("JPY",11.4,"<")] # Set "<" to email receive if actual price is higher than set value.
-#paramet_stock=[("BOREALIS",2.5,"<"),("CETIN",30.7,">")] # Set "<" to email receive if actual price is higher than set value.
-#stock_set=[('BOREALIS', 'GI000A1J9JJ0'), ('CETIN', 'CZ0009000089'), ('CETV', 'BMG200452024'), ('CEZ', 'CZ0005112300'), ('E4U', 'CZ0005123620'), ('ENERGOAQUA', 'CS0008419750'), ('ENERGOCHEMICA', 'CZ0008467818'), ('ERSTE GROUP BANK', 'AT0000652011'), ('FORTUNA', 'NL0009604859'), ('JACHYMOV PM', 'CS0008446753'), ('KOMERCNI BANKA', 'CZ0008019106'), ('NWR', 'GB00B42CTW68'), ('O2 C.R.', 'CZ0009093209'), ('PEGAS NONWOVENS', 'LU0275164910'), ('PHILIP MORRIS CR', 'CS0008418869'), ('PLG', 'CZ0005124420'), ('PRAZSKE SLUZBY', 'CZ0009055158'), ('RMS MEZZANINE', 'CS0008416251'), ('STOCK', 'GB00BF5SDZ96'), ('TMR', 'SK1120010287'), ('TOMA', 'CZ0005088559'), ('UNIPETROL', 'CZ0009091500'), ('VGP', 'BE0003878957'), ('VIG', 'AT0000908504')]
-#urlcurrencies="http://www.cnb.cz/cs/financni_trhy/devizovy_trh/kurzy_devizoveho_trhu/denni_kurz.jsp"
-urlcurrencies="http://www.cnb.cz/cs/financni_trhy/devizovy_trh/kurzy_devizoveho_trhu/denni_kurz.jsp?date=18.06.2015"
-#urlstock="https://www.pse.cz/Kurzovni-Listek/Oficialni-KL/?language=english"
-urlstock="https://www.pse.cz/Kurzovni-Listek/Oficialni-KL/?date=6/18/2015"
-#xday=7
-#sender = 'mmm@seznam.cz'
-#receivers = ['rrr@gmail.com']
-#cc=[]
-#SMTP=['192.168.3.1',25]
-
 
 if os.path.isfile('stock.dat'):
     with open('stock.dat','r') as f:
@@ -58,7 +41,25 @@ class analyser:
                 print "Successfully sent email"
             except:
                 print "Error: unable to send email"
-    def parse(self,run,arg):
+    def data_autoloader(self):
+        fromdate=Config.get("data_autoloader", "fromdate")
+        todate=Config.get("data_autoloader", "todate")
+        c=datetime.datetime.strptime(fromdate,"%Y-%m-%d")
+        d=datetime.datetime.strptime(todate,"%Y-%m-%d")
+        ex=d
+        urlstocka=Config.get("data_autoloader", "urlstock1")
+        urlcurrenciesa=Config.get("data_autoloader", "urlcurrencies1")
+        
+        while c <= ex:
+            urlst=(str(urlstocka)+ex.strftime("%-m/%-d/%Y"))
+            urlcurr=(str(urlcurrenciesa)+ex.strftime("%d.%m.%Y"))
+
+            g.parse(x.search_curr,urlcurr)
+            g.parse(y.search_stock,urlst)
+            print ex
+            ex-=datetime.timedelta(days=1)
+            
+    def parse(self,run,*arg):
         try:
             run(*arg)
         except:
@@ -125,8 +126,8 @@ class currencies(analyser):
     def __init__(self,currency):
         self.currency=currency
         self.date=0
-    def search_curr(self):
-        kurzy = urllib2.urlopen(urlcurrencies)
+    def search_curr(self,urlcurr):
+        kurzy = urllib2.urlopen(urlcurr)
         for line in kurzy:
             m=re.search("Platnost pro (\d{2})[.](\d{2})[.](\d{4})",line)
             if m:
@@ -160,8 +161,8 @@ class stocks(analyser):
     def __init__(self,stock):
         self.stock=stock
         self.date=0
-    def search_stock(self):
-        kurzy = urllib2.urlopen(urlstock)
+    def search_stock(self,urlst):
+        kurzy = urllib2.urlopen(urlst)
         for line in kurzy:
             m=re.search('value="(\d{1,2})/(\d{1,2})/(\d{4})"',line)
             if m:
@@ -193,17 +194,32 @@ class stocks(analyser):
 
 x=currencies(currency)
 g=analyser()
-g.parse(x.search_curr,())
-x.alert_price(paramet_curr)
 y=stocks(stock_set)
-g.parse(y.search_stock,())
-y.alert_price_stock(paramet_stock)
-g.trend(xday)
-#x.messenger()
+
+if Config.get("run", "parsers") == "yes":
+    g.parse(x.search_curr,urlcurrencies)
+    g.parse(y.search_stock,urlstock)
+    print "parsers run"
+if Config.get("run", "alerts") == "yes":
+    x.alert_price(paramet_curr)
+    y.alert_price_stock(paramet_stock)
+    print "alerts run"
+if Config.get("run", "trends") == "yes":
+    g.trend(xday)
+
+if Config.get("run", "data_autoloader") == "yes":
+    g.data_autoloader()
+    Config.set("run", "data_autoloader","no")
+    with open('stock.ini', 'wb') as configfile:
+        Config.write(configfile)
+
+if Config.get("run", "messenger") == "yes":
+    x.messenger()
+    
 print analyser.message
 print analyser.counter
-for key in sorted(data.keys()):
-    for val in data[key]["currency"].keys():
-        print key,"currency",val,data[key]["currency"][val]
+#for key in sorted(data.keys()):
+#    for val in data[key]["currency"].keys():
+#        print key,"currency",val,data[key]["currency"][val]
 with open('stock.dat','w') as f:
     json.dump(data, f)
