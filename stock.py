@@ -101,25 +101,27 @@ class analyser:
             try:
                 return "%1.3f" % (sum(aver)/len(aver))
             except:
-                print "Function Average: No values to calculate"
+                return "-- no data --"
     
     def trend(self,n):
         tr=sorted(data.keys())
         if len(tr) < 3:
-            print "Function Trend: Not enough values to evaluate (min. 3)"
+            analyser.message += "Function Trend: Not enough values to evaluate (min. 3) \n"
+            analyser.counter +=1
         else:
             for st in data[tr[-1]]['stock'].keys():                     
                 if data[tr[-1]]['stock'][st][0] > data[tr[-2]]['stock'][st][0] > data[tr[-3]]['stock'][st][0]:
-                    print "-----------------------------------  Share name: %-20s-----------------------------------" % st.center(20, ' ')
-                    print "%14s%18s%18s%18s%18s%18s" % ("Date", "Price in CZK","Price in %s" % (currency[0]),"Price in %s" % (currency[1]),"Price in %s" % (currency[2]),"Price in %s" % (currency[3]))
+                    analyser.message +="\n-----------------------------------  Share name: %-20s-----------------------------------\n" % st.center(20, ' ')
+                    analyser.counter +=1
+                    analyser.message += "%14s%18s%18s%18s%18s%18s\n" % ("Date", "Price in CZK","Price in %s" % (currency[0]),"Price in %s" % (currency[1]),"Price in %s" % (currency[2]),"Price in %s" % (currency[3]))
                     if len(tr) < 8:
-                        print "Function Trend: Not enough values to evaluate (min. 8)"
+                        analyser.message += "Function Trend: Not enough values to evaluate (min. 8)\n"
                     else:
                         for x in range(-7,0):
                             a=data[tr[x]]['stock'][st][0]
                             b=data[tr[x-1]]['stock'][st][0]
-                            print "%14s:%15s%15s%15s%15s%15s" % (tr[x],g.try_f(g.prn_column,st,tr,x,"CZK"),g.try_f(g.prn_column,st,tr,x,currency[0]),g.try_f(g.prn_column,st,tr,x,currency[1]),g.try_f(g.prn_column,st,tr,x,currency[2]),g.try_f(g.prn_column,st,tr,x,currency[3]))
-                        print "%s days average: %9s%18s%18s%18s%18s" % (n,self.average(n,st,"CZK"),self.average(n,st,currency[0]),self.average(n,st,currency[1]),self.average(n,st,currency[2]),self.average(n,st,currency[3]))
+                            analyser.message += "%14s:%15s%15s%15s%15s%15s\n" % (tr[x],g.try_f(g.prn_column,st,tr,x,"CZK"),g.try_f(g.prn_column,st,tr,x,currency[0]),g.try_f(g.prn_column,st,tr,x,currency[1]),g.try_f(g.prn_column,st,tr,x,currency[2]),g.try_f(g.prn_column,st,tr,x,currency[3]))
+                        analyser.message += "%s days average: %9s%18s%18s%18s%18s\n" % (n,self.average(n,st,"CZK"),self.average(n,st,currency[0]),self.average(n,st,currency[1]),self.average(n,st,currency[2]),self.average(n,st,currency[3]))
 
 class currencies(analyser):
     def __init__(self,currency):
@@ -215,8 +217,6 @@ if Config.get("run", "messenger") == "yes":
     
 print analyser.message
 print analyser.counter
-#for key in sorted(data.keys()):
-#    for val in data[key]["currency"].keys():
-#        print key,"currency",val,data[key]["currency"][val]
+
 with open('stock.dat','w') as f:
     json.dump(data, f)
