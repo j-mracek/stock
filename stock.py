@@ -48,12 +48,10 @@ class analyser:
         d=datetime.datetime.strptime(todate,"%Y-%m-%d")
         ex=d
         urlstocka=Config.get("data_autoloader", "urlstock1")
-        urlcurrenciesa=Config.get("data_autoloader", "urlcurrencies1")
-        
+        urlcurrenciesa=Config.get("data_autoloader", "urlcurrencies1")        
         while c <= ex:
             urlst=(str(urlstocka)+ex.strftime("%-m/%-d/%Y"))
             urlcurr=(str(urlcurrenciesa)+ex.strftime("%d.%m.%Y"))
-
             g.parse(x.search_curr,urlcurr)
             g.parse(y.search_stock,urlst)
             print ex
@@ -67,6 +65,7 @@ class analyser:
             try:
                 run(*arg)
             except:
+                print "The function %s%s didn't work properly, may be due to unable to open url." % (run.__name__,arg)
                 analyser.message +="The function %s%s didn't work properly, may be due to unable to open url. \n" % (run.__name__,arg) 
                 analyser.counter +=1
     def prn_column(self,st,tr,x,curr):
@@ -127,7 +126,7 @@ class currencies(analyser):
         self.currency=currency
         self.date=0
     def search_curr(self,urlcurr):
-        kurzy = urllib2.urlopen(urlcurr)
+        kurzy = urllib2.urlopen(urlcurr,timeout=5)
         for line in kurzy:
             m=re.search("Platnost pro (\d{2})[.](\d{2})[.](\d{4})",line)
             if m:
@@ -162,7 +161,7 @@ class stocks(analyser):
         self.stock=stock
         self.date=0
     def search_stock(self,urlst):
-        kurzy = urllib2.urlopen(urlst)
+        kurzy = urllib2.urlopen(urlst,timeout=5)
         for line in kurzy:
             m=re.search('value="(\d{1,2})/(\d{1,2})/(\d{4})"',line)
             if m:
@@ -206,13 +205,11 @@ if Config.get("run", "alerts") == "yes":
     print "alerts run"
 if Config.get("run", "trends") == "yes":
     g.trend(xday)
-
 if Config.get("run", "data_autoloader") == "yes":
     g.data_autoloader()
     Config.set("run", "data_autoloader","no")
     with open('stock.ini', 'wb') as configfile:
         Config.write(configfile)
-
 if Config.get("run", "messenger") == "yes":
     x.messenger()
     
