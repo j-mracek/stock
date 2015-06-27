@@ -197,7 +197,7 @@ x=currencies(currency)
 g=analyser()
 y=stocks(stock_set)
 
-if Config.get("run", "parsers") == "yes":
+if (Config.get("run", "parsers") == "yes") or (Config.get("run", "alerts") == "yes"):
     g.parse(x.search_curr,urlcurrencies)
     g.parse(y.search_stock,urlstock)
     print "parsers run"
