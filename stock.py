@@ -1,26 +1,6 @@
 #!/usr/bin/env python
 import urllib2, re, json, os.path, smtplib, time, ConfigParser, ast,datetime
 
-data={}
-
-Config = ConfigParser.ConfigParser()
-Config.read("stock.ini")
-
-sender = ast.literal_eval(Config.get("messenger", "sender"))
-receivers=ast.literal_eval(Config.get("messenger", "receivers"))
-cc=ast.literal_eval(Config.get("messenger", "cc"))
-SMTP=ast.literal_eval(Config.get("messenger", "SMTP"))
-currency=ast.literal_eval(Config.get("currency", "currency"))
-paramet_curr=ast.literal_eval(Config.get("currency", "paramet_curr"))
-urlcurrencies=ast.literal_eval(Config.get("currency", "urlcurrencies"))
-stock_set=ast.literal_eval(Config.get("stock", "stock_set"))
-paramet_stock=ast.literal_eval(Config.get("stock", "paramet_stock"))
-urlstock=ast.literal_eval(Config.get("stock", "urlstock"))
-xday=ast.literal_eval(Config.get("xdayaverage", "xday"))
-
-if os.path.isfile('stock.dat'):
-    with open('stock.dat','r') as f:
-        data = json.load(f)
 
 class analyser:
     message = "Dear user of stock.py,\n"
@@ -193,30 +173,53 @@ class stocks(analyser):
              print "The page https://www.pse.cz/Kurzovni-Listek/Oficialni-KL/?language=english failed to open."
             
 
-x=currencies(currency)
-g=analyser()
-y=stocks(stock_set)
+if __name__ == '__main__':
+    data={}
 
-if (Config.get("run", "parsers") == "yes") or (Config.get("run", "alerts") == "yes"):
-    g.parse(x.search_curr,urlcurrencies)
-    g.parse(y.search_stock,urlstock)
-    print "parsers run"
-if Config.get("run", "alerts") == "yes":
-    x.alert_price(paramet_curr)
-    y.alert_price_stock(paramet_stock)
-    print "alerts run"
-if Config.get("run", "trends") == "yes":
-    g.trend(xday)
-if Config.get("run", "data_autoloader") == "yes":
-    g.data_autoloader()
-    Config.set("run", "data_autoloader","no")
-    with open('stock.ini', 'wb') as configfile:
-        Config.write(configfile)
-if Config.get("run", "messenger") == "yes":
-    x.messenger()
-    
-print analyser.message
-print analyser.counter
+    Config = ConfigParser.ConfigParser()
+    Config.read("stock.ini")
 
-with open('stock.dat','w') as f:
-    json.dump(data, f)
+    sender = ast.literal_eval(Config.get("messenger", "sender"))
+    receivers=ast.literal_eval(Config.get("messenger", "receivers"))
+    cc=ast.literal_eval(Config.get("messenger", "cc"))
+    SMTP=ast.literal_eval(Config.get("messenger", "SMTP"))
+    currency=ast.literal_eval(Config.get("currency", "currency"))
+    paramet_curr=ast.literal_eval(Config.get("currency", "paramet_curr"))
+    urlcurrencies=ast.literal_eval(Config.get("currency", "urlcurrencies"))
+    stock_set=ast.literal_eval(Config.get("stock", "stock_set"))
+    paramet_stock=ast.literal_eval(Config.get("stock", "paramet_stock"))
+    urlstock=ast.literal_eval(Config.get("stock", "urlstock"))
+    xday=ast.literal_eval(Config.get("xdayaverage", "xday"))
+
+    if os.path.isfile('stock.dat'):
+        with open('stock.dat','r') as f:
+            data = json.load(f)
+ 
+
+    x=currencies(currency)
+    g=analyser()
+    y=stocks(stock_set)
+
+    if (Config.get("run", "parsers") == "yes") or (Config.get("run", "alerts") == "yes"):
+        g.parse(x.search_curr,urlcurrencies)
+        g.parse(y.search_stock,urlstock)        
+    if Config.get("run", "alerts") == "yes":
+        x.alert_price(paramet_curr)
+        y.alert_price_stock(paramet_stock)
+    if Config.get("run", "trends") == "yes":
+        g.trend(xday)
+    if Config.get("run", "data_autoloader") == "yes":
+        g.data_autoloader()
+        Config.set("run", "data_autoloader","no")
+        with open('stock.ini', 'wb') as configfile:
+            Config.write(configfile)
+    if Config.get("run", "messenger") == "yes":
+        x.messenger()
+        
+    print analyser.message
+#    print analyser.counter
+
+    with open('stock.dat','w') as f:
+        json.dump(data, f)
+
+
