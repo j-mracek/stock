@@ -56,12 +56,20 @@ class Analyser:
             try:
                 function(*arguments)
             except urllib2.HTTPError, error_message:
-                print "The function %s %s didn't work properly, may be due %s." % (function.__name__, arguments, error_message)
-                Analyser.message += "The function %s %s didn't work properly, may be due %s. \n" % (function.__name__, arguments, error_message)
+                print "The function %s %s didn't work properly, may be due %s." % (function.__name__,
+                                                                                   arguments,
+                                                                                   error_message)
+                Analyser.message += "The function %s %s didn't work properly, may be due %s. \n" % (function.__name__,
+                                                                                                    arguments,
+                                                                                                    error_message)
                 Analyser.counter += 1
             except urllib2.URLError, error_message:
-                print "The function %s %s didn't work properly, may be due %s." % (function.__name__, arguments, error_message)
-                Analyser.message += "The function %s %s didn't work properly, may be due %s. \n" % (function.__name__, arguments, error_message)
+                print "The function %s %s didn't work properly, may be due %s." % (function.__name__,
+                                                                                   arguments,
+                                                                                   error_message)
+                Analyser.message += "The function %s %s didn't work properly, may be due %s. \n" % (function.__name__,
+                                                                                                    arguments,
+                                                                                                    error_message)
                 Analyser.counter += 1
 
     def prn_column(self, stockname, datakeys, x, curr):
@@ -113,16 +121,35 @@ class Analyser:
             Analyser.counter += 1
         else:
             for stock_name in data[data_keys[-1]]['stock'].keys():
-                if data[data_keys[-1]]['stock'][stock_name][0] > data[data_keys[-2]]['stock'][stock_name][0] > data[data_keys[-3]]['stock'][stock_name][0]:
+                if data[data_keys[-1]]['stock'][stock_name][0] > \
+                        data[data_keys[-2]]['stock'][stock_name][0] > \
+                        data[data_keys[-3]]['stock'][stock_name][0]:
                     Analyser.message += "\n%s  Share name: %-20s%s\n" % ((35*"-"), stock_name.center(20, ' '), (35*"-"))
                     Analyser.counter += 1
-                    Analyser.message += "%14s%18s%18s%18s%18s%18s\n" % ("Date", "Price in CZK", "Price in %s" % (currency[0]), "Price in %s" % (currency[1]), "Price in %s" % (currency[2]), "Price in %s" % (currency[3]))
+                    Analyser.message += "%14s%18s%18s%18s%18s%18s\n" % ("Date",
+                                                                        "Price in CZK",
+                                                                        "Price in %s" % (currency[0]),
+                                                                        "Price in %s" % (currency[1]),
+                                                                        "Price in %s" % (currency[2]),
+                                                                        "Price in %s" % (currency[3]))
                     if len(data_keys) < 8:
                         Analyser.message += "Function Trend: Not enough values to evaluate (min. 8)\n"
                     else:
                         for x in range(-7, 0):
-                            Analyser.message += "%14s:%15s%15s%15s%15s%15s\n" % (data_keys[x], g.try_f(g.prn_column, stock_name, data_keys, x, "CZK"), g.try_f(g.prn_column, stock_name, data_keys, x, currency[0]), g.try_f(g.prn_column, stock_name, data_keys, x, currency[1]), g.try_f(g.prn_column, stock_name, data_keys, x, currency[2]), g.try_f(g.prn_column, stock_name, data_keys, x, currency[3]))
-                        Analyser.message += "%s days average: %9s%18s%18s%18s%18s\n" % (period, self.average(period, stock_name, "CZK"), self.average(period, stock_name, currency[0]), self.average(period, stock_name, currency[1]), self.average(period, stock_name, currency[2]), self.average(period, stock_name, currency[3]))
+                            Analyser.message += "%14s:%15s%15s%15s%15s%15s\n" % \
+                                                (data_keys[x],
+                                                 g.try_f(g.prn_column, stock_name, data_keys, x, "CZK"),
+                                                 g.try_f(g.prn_column, stock_name, data_keys, x, currency[0]),
+                                                 g.try_f(g.prn_column, stock_name, data_keys, x, currency[1]),
+                                                 g.try_f(g.prn_column, stock_name, data_keys, x, currency[2]),
+                                                 g.try_f(g.prn_column, stock_name, data_keys, x, currency[3]))
+                        Analyser.message += "%s days average: %9s%18s%18s%18s%18s\n" % \
+                                            (period,
+                                             self.average(period, stock_name, "CZK"),
+                                             self.average(period, stock_name, currency[0]),
+                                             self.average(period, stock_name, currency[1]),
+                                             self.average(period, stock_name, currency[2]),
+                                             self.average(period, stock_name, currency[3]))
 
 
 class Currencies(Analyser):
@@ -140,8 +167,10 @@ class Currencies(Analyser):
                 s = '>(\d+)</td><td>%s</td><td align="right">(\d+),(\d+)<' % cur
                 m = re.search(s, line)
                 if m:
-                    data.setdefault(self.date, {}).setdefault("currency", {}).setdefault(cur, ["", ""])[0] = (float("%s.%s" % (m.group(2), m.group(3))))
-                    data.setdefault(self.date, {}).setdefault("currency", {}).setdefault(cur, ["", ""])[1] = (int(m.group(1)))
+                    data.setdefault(self.date, {}).setdefault("currency", {}).setdefault(cur, ["", ""])[0] = \
+                        (float("%s.%s" % (m.group(2), m.group(3))))
+                    data.setdefault(self.date, {}).setdefault("currency", {}).setdefault(cur, ["", ""])[1] = \
+                        (int(m.group(1)))
         kurzy.close()
         
     def alert_price(self, parameters):
@@ -150,16 +179,29 @@ class Currencies(Analyser):
             for parameter in self.parameters:
                 if parameter[2] == "<":
                     if parameter[1] < data[self.date]["currency"][parameter[0]][0]:
-                        Analyser.message += 'The exchange rate for %s %s is %s CZK and this is higher than set allert value (%s CZK).\n' % (data[self.date]["currency"][parameter[0]][1], parameter[0], data[self.date]["currency"][parameter[0]][0], parameter[1])
+                        Analyser.message += 'The exchange rate for %s %s is %s CZK' \
+                                            ' and this is higher than set allert ' \
+                                            'value (%s CZK).\n' % (data[self.date]["currency"][parameter[0]][1],
+                                                                   parameter[0],
+                                                                   data[self.date]["currency"][parameter[0]][0],
+                                                                   parameter[1])
                         Analyser.counter += 1
                 elif parameter[2] == ">":
                     if parameter[1] > data[self.date]["currency"][parameter[0]][0]:
-                        Analyser.message += 'The exchange rate for %s %s is %s CZK and this is lower than set allert value (%s CZK).\n' % (data[self.date]["currency"][parameter[0]][1], parameter[0], data[self.date]["currency"][parameter[0]][0], parameter[1])
+                        Analyser.message += 'The exchange rate for %s %s is %s CZK' \
+                                            ' and this is lower than set allert' \
+                                            ' value (%s CZK).\n' % (data[self.date]["currency"][parameter[0]][1],
+                                                                    parameter[0],
+                                                                    data[self.date]["currency"][parameter[0]][0],
+                                                                    parameter[1])
                         Analyser.counter += 1
                 else:
-                    print "Incorrect character in paramet_stock in setting: (%s,%s,%s)" % (parameter[0], parameter[1], parameter[2])
+                    print "Incorrect character in paramet_stock in setting: (%s,%s,%s)" % (parameter[0],
+                                                                                           parameter[1],
+                                                                                           parameter[2])
         else:
-            print "The page http://www.cnb.cz/cs/financni_trhy/devizovy_trh/kurzy_devizoveho_trhu/denni_kurz.jsp failed to open."
+            print "The page http://www.cnb.cz/cs/financni_trhy/devizovy_trh/kurzy_devizoveho_trhu/denni_kurz.jsp" \
+                  " failed to open."
 
 
 class Stocks(Analyser):
@@ -174,11 +216,15 @@ class Stocks(Analyser):
             if m:
                 self.date = "%s-%s-%s" % (m.group(3), m.group(1).zfill(2), m.group(2).zfill(2))
             for sh in self.stock:
-                    string = '</td><td>%s</td><td class="num">(\d*)[,]?(\d{1,3}[.]\d{2})</td><td class="center">CZK</td><td class="num \w+">-?\w+[.]\d{2}</td><td class="num">(\d*)[,]?(\d*)[,]?(\d+)<' % (sh[1])
+                    string = '</td><td>%s</td><td class="num">(\d*)[,]?(\d{1,3}[.]\d{2})</td><td ' \
+                             'class="center">CZK</td><td class="num \w+">-?\w+[.]\d{2}</td><td class="num">' \
+                             '(\d*)[,]?(\d*)[,]?(\d+)<' % (sh[1])
                     m = re.search(string, line)
                     if m:
-                        data.setdefault(self.date, {}).setdefault("stock", {}).setdefault(sh[0], ["", ""])[0] = (float("%s%s" % (m.group(1), m.group(2))))
-                        data.setdefault(self.date, {}).setdefault("stock", {}).setdefault(sh[0], ["", ""])[1] = (int("%s%s%s" % (m.group(3), m.group(4), m.group(5))))
+                        data.setdefault(self.date, {}).setdefault("stock", {}).setdefault(sh[0], ["", ""])[0] = \
+                            (float("%s%s" % (m.group(1), m.group(2))))
+                        data.setdefault(self.date, {}).setdefault("stock", {}).setdefault(sh[0], ["", ""])[1] = \
+                            (int("%s%s%s" % (m.group(3), m.group(4), m.group(5))))
         kurzy.close()
 
     def alert_price_stock(self, parameters):
@@ -187,14 +233,22 @@ class Stocks(Analyser):
             for parameter in self.parameters:
                 if parameter[2] == "<":
                     if parameter[1] < data[self.date]["stock"][parameter[0]][0]:
-                        Analyser.message += 'The share price of  %s is %s CZK and this is higher than set allert value (%s CZK).\n' % (parameter[0], data[self.date]["stock"][parameter[0]][0], parameter[1])
+                        Analyser.message += 'The share price of  %s is %s CZK and this is higher than set allert ' \
+                                            'value (%s CZK).\n' % (parameter[0],
+                                                                   data[self.date]["stock"][parameter[0]][0],
+                                                                   parameter[1])
                         Analyser.counter += 1
                 elif parameter[2] == ">":
                     if parameter[1] > data[self.date]["stock"][parameter[0]][0]:
-                        Analyser.message += 'The share price of %s is %s CZK and this is lower than set allert value (%s CZK).\n' % (parameter[0], data[self.date]["stock"][parameter[0]][0], parameter[1])
+                        Analyser.message += 'The share price of %s is %s CZK and this is lower than set allert ' \
+                                'value (%s CZK).\n' % (parameter[0],
+                                                       data[self.date]["stock"][parameter[0]][0],
+                                                       parameter[1])
                         Analyser.counter += 1
                 else:
-                    print "Incorrect character in paramet_stock in setting: (%s,%s,%s)" % (parameter[0], parameter[1], parameter[2])
+                    print "Incorrect character in paramet_stock in setting: (%s,%s,%s)" % (parameter[0],
+                                                                                           parameter[1],
+                                                                                           parameter[2])
         else:
             print "The page https://www.pse.cz/Kurzovni-Listek/Oficialni-KL/?language=english failed to open."
             
